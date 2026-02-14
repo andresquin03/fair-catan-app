@@ -27,6 +27,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 import { DiceDisplay } from "./dice-display"
 import { ProbabilityChart } from "./probability-chart"
@@ -120,6 +130,8 @@ export function FairCatanGame() {
   const [currentRoll, setCurrentRoll] = useState<DiceRoll | null>(null)
   const [hydrated, setHydrated] = useState(false)
   const rollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [showResetDialog, setShowResetDialog] = useState(false)
+  const [pendingBagSize, setPendingBagSize] = useState<string | null>(null)
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -207,16 +219,32 @@ export function FairCatanGame() {
     }
   }, [state.previousBag, state.history])
 
-  const doReset = useCallback(() => {
+  const requestReset = useCallback(() => {
+    setShowResetDialog(true)
+  }, [])
+
+  const confirmReset = useCallback(() => {
     dispatch({ type: "RESET", bagSize: state.bagSize })
     setCurrentRoll(null)
+    setShowResetDialog(false)
     toast.success("Cycle reset")
   }, [state.bagSize])
 
-  const doBagSizeChange = useCallback((size: string) => {
-    dispatch({ type: "SET_BAG_SIZE", bagSize: Number(size) as BagSize })
+  const requestBagSizeChange = useCallback((size: string) => {
+    if (size === String(state.bagSize)) return
+    setPendingBagSize(size)
+  }, [state.bagSize])
+
+  const confirmBagSizeChange = useCallback(() => {
+    if (!pendingBagSize) return
+    dispatch({ type: "SET_BAG_SIZE", bagSize: Number(pendingBagSize) as BagSize })
     setCurrentRoll(null)
-    toast.success(`Bag size changed to ${size}`)
+    setPendingBagSize(null)
+    toast.success(`Bag size changed to ${pendingBagSize}`)
+  }, [pendingBagSize])
+
+  const cancelBagSizeChange = useCallback(() => {
+    setPendingBagSize(null)
   }, [])
 
   const doShare = useCallback(() => {
@@ -292,7 +320,7 @@ export function FairCatanGame() {
             <div className="flex items-center gap-2">
               <Select
                 value={String(state.bagSize)}
-                onValueChange={doBagSizeChange}
+                onValueChange={requestBagSizeChange}
               >
                 <SelectTrigger className="w-24">
                   <SelectValue />
@@ -383,7 +411,7 @@ export function FairCatanGame() {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={doReset}>
+                      <Button variant="outline" size="sm" onClick={requestReset}>
                         <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                         Reset
                       </Button>
@@ -435,6 +463,45 @@ export function FairCatanGame() {
           </div>
         </main>
       </div>
+
+      {/* Reset confirmation */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset cycle?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will restart the bag and clear the current cycle history. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmReset}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bag size change confirmation */}
+      <AlertDialog open={pendingBagSize !== null} onOpenChange={(open) => { if (!open) cancelBagSizeChange() }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change bag size?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Changing bag size will restart the cycle. Continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelBagSizeChange}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBagSizeChange}>
+              Change
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   )
 }
