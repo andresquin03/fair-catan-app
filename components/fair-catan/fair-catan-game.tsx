@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useTheme } from "next-themes"
-import { cn } from "@/lib/utils"
 import {
   Dices,
   Moon,
@@ -154,23 +153,103 @@ export function FairCatanGame() {
     setHydrated(true)
   }, [])
 
-  // Persist accent color & sync class to <html> so portaled components inherit it
+  // Persist accent color
   const handleAccentChange = useCallback((color: AccentColor) => {
     setAccentColor(color)
     try { localStorage.setItem("fair-catan-accent", color) } catch {}
   }, [])
 
+  // ── Accent colour tokens ──────────────────────────────────────
+  // Imperative style.setProperty beats any stylesheet rule, so it
+  // works in both light and dark mode without cascade issues.
+  const ACCENT_TOKENS: Record<AccentColor, {
+    light: Record<string, string>
+    dark: Record<string, string>
+  }> = {
+    orange: {
+      light: {
+        "--primary": "25 75% 47%",
+        "--primary-foreground": "40 40% 99%",
+        "--ring": "25 75% 47%",
+        "--accent": "16 65% 52%",
+        "--accent-foreground": "40 40% 99%",
+        "--chart-1": "25 75% 47%",
+      },
+      dark: {
+        "--primary": "30 80% 55%",
+        "--primary-foreground": "25 20% 8%",
+        "--ring": "30 80% 55%",
+        "--accent": "16 70% 58%",
+        "--accent-foreground": "25 20% 8%",
+        "--chart-1": "30 80% 55%",
+      },
+    },
+    green: {
+      light: {
+        "--primary": "152 60% 38%",
+        "--primary-foreground": "152 30% 97%",
+        "--ring": "152 60% 38%",
+        "--accent": "162 50% 44%",
+        "--accent-foreground": "152 30% 97%",
+        "--chart-1": "152 60% 38%",
+      },
+      dark: {
+        "--primary": "152 55% 50%",
+        "--primary-foreground": "152 30% 8%",
+        "--ring": "152 55% 50%",
+        "--accent": "162 50% 52%",
+        "--accent-foreground": "152 30% 8%",
+        "--chart-1": "152 55% 50%",
+      },
+    },
+    blue: {
+      light: {
+        "--primary": "215 70% 48%",
+        "--primary-foreground": "215 30% 97%",
+        "--ring": "215 70% 48%",
+        "--accent": "205 65% 55%",
+        "--accent-foreground": "215 30% 97%",
+        "--chart-1": "215 70% 48%",
+      },
+      dark: {
+        "--primary": "215 70% 58%",
+        "--primary-foreground": "215 30% 8%",
+        "--ring": "215 70% 58%",
+        "--accent": "205 65% 62%",
+        "--accent-foreground": "215 30% 8%",
+        "--chart-1": "215 70% 58%",
+      },
+    },
+    violet: {
+      light: {
+        "--primary": "270 55% 52%",
+        "--primary-foreground": "270 30% 97%",
+        "--ring": "270 55% 52%",
+        "--accent": "280 50% 58%",
+        "--accent-foreground": "270 30% 97%",
+        "--chart-1": "270 55% 52%",
+      },
+      dark: {
+        "--primary": "270 55% 62%",
+        "--primary-foreground": "270 30% 8%",
+        "--ring": "270 55% 62%",
+        "--accent": "280 50% 65%",
+        "--accent-foreground": "270 30% 8%",
+        "--chart-1": "270 55% 62%",
+      },
+    },
+  }
+
+  // Apply accent CSS variables whenever accent or theme changes
   useEffect(() => {
+    const isDark = theme === "dark" ||
+      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    const tokens = ACCENT_TOKENS[accentColor][isDark ? "dark" : "light"]
     const root = document.documentElement
-    // Remove any previous accent-* class
-    root.classList.forEach((cls) => {
-      if (cls.startsWith("accent-")) root.classList.remove(cls)
-    })
-    // Add the new one (orange is the default — no class needed)
-    if (accentColor !== "orange") {
-      root.classList.add(`accent-${accentColor}`)
+    for (const [prop, value] of Object.entries(tokens)) {
+      root.style.setProperty(prop, value)
     }
-  }, [accentColor])
+  }, [accentColor, theme])
 
   // Persist state changes to localStorage
   useEffect(() => {

@@ -1,6 +1,5 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { computeProbabilities, expectedProbabilities } from "@/lib/dice-engine"
 
@@ -32,21 +31,14 @@ export function ProbabilityChart({ bag }: ProbabilityChartProps) {
                   {num}
                 </span>
                 <div className="relative h-5 flex-1 overflow-hidden rounded-sm bg-muted">
-                  {/* Expected probability marker line */}
+                  {/* Expected probability marker line (neutral) */}
                   <div
                     className="absolute top-0 h-full w-0.5 bg-muted-foreground/30"
                     style={{ left: `${expBarWidth}%` }}
                   />
-                  {/* Actual probability bar */}
+                  {/* Actual probability bar — always uses accent via --primary */}
                   <div
-                    className={cn(
-                      "h-full rounded-sm transition-all duration-300",
-                      prob > exp + 2
-                        ? "bg-accent"
-                        : prob < exp - 2
-                        ? "bg-chart-3"
-                        : "bg-primary"
-                    )}
+                    className="h-full rounded-sm bg-primary transition-all duration-300"
                     style={{ width: `${barWidth}%` }}
                   />
                 </div>
