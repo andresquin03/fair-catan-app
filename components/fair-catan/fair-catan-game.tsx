@@ -154,11 +154,23 @@ export function FairCatanGame() {
     setHydrated(true)
   }, [])
 
-  // Persist accent color changes
+  // Persist accent color & sync class to <html> so portaled components inherit it
   const handleAccentChange = useCallback((color: AccentColor) => {
     setAccentColor(color)
     try { localStorage.setItem("fair-catan-accent", color) } catch {}
   }, [])
+
+  useEffect(() => {
+    const root = document.documentElement
+    // Remove any previous accent-* class
+    root.classList.forEach((cls) => {
+      if (cls.startsWith("accent-")) root.classList.remove(cls)
+    })
+    // Add the new one (orange is the default — no class needed)
+    if (accentColor !== "orange") {
+      root.classList.add(`accent-${accentColor}`)
+    }
+  }, [accentColor])
 
   // Persist state changes to localStorage
   useEffect(() => {
@@ -316,7 +328,7 @@ export function FairCatanGame() {
 
   return (
     <TooltipProvider>
-      <div className={cn("min-h-screen bg-background", accentColor !== "orange" && `accent-${accentColor}`)}>
+      <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="border-b border-border bg-card">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
@@ -345,10 +357,8 @@ export function FairCatanGame() {
                   <SelectItem value="144">144</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="hidden items-center gap-1 sm:flex" aria-label="Accent color">
-                <AccentPicker value={accentColor} onChange={handleAccentChange} />
-              </div>
-              <div className="h-5 w-px bg-border hidden sm:block" role="separator" />
+              <AccentPicker value={accentColor} onChange={handleAccentChange} />
+              <div className="h-5 w-px bg-border" role="separator" />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

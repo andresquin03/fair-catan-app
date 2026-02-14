@@ -1,6 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import { cn } from "@/lib/utils"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 export type AccentColor = "orange" | "green" | "blue" | "violet"
 
@@ -17,29 +23,54 @@ const ACCENTS: { id: AccentColor; label: string; swatch: string }[] = [
 ]
 
 export function AccentPicker({ value, onChange }: AccentPickerProps) {
+  const [open, setOpen] = useState(false)
+  const current = ACCENTS.find((a) => a.id === value) ?? ACCENTS[0]
+
   return (
-    <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Accent color">
-      {ACCENTS.map((accent) => {
-        const selected = value === accent.id
-        return (
-          <button
-            key={accent.id}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            aria-label={accent.label}
-            onClick={() => onChange(accent.id)}
-            className={cn(
-              "h-6 w-6 rounded-full transition-all",
-              "ring-offset-2 ring-offset-background",
-              accent.swatch,
-              selected
-                ? "ring-2 ring-foreground scale-110"
-                : "ring-1 ring-border hover:ring-foreground/50 hover:scale-105"
-            )}
-          />
-        )
-      })}
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Accent color: ${current.label}. Click to change.`}
+          className={cn(
+            "h-7 w-7 rounded-full transition-transform hover:scale-110",
+            "ring-2 ring-offset-2 ring-offset-background ring-foreground/30",
+            current.swatch,
+          )}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-auto p-3"
+      >
+        <p className="mb-2 text-xs font-medium text-muted-foreground">Accent color</p>
+        <div className="flex items-center gap-2" role="radiogroup" aria-label="Accent color">
+          {ACCENTS.map((accent) => {
+            const selected = value === accent.id
+            return (
+              <button
+                key={accent.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={accent.label}
+                onClick={() => {
+                  onChange(accent.id)
+                  setOpen(false)
+                }}
+                className={cn(
+                  "h-8 w-8 rounded-full transition-all",
+                  "ring-offset-2 ring-offset-background",
+                  accent.swatch,
+                  selected
+                    ? "ring-2 ring-foreground scale-110"
+                    : "ring-1 ring-border hover:ring-foreground/50 hover:scale-105",
+                )}
+              />
+            )
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }

@@ -79,8 +79,8 @@ body {
   /* ── Accent colour overrides ─────────────────────────────── */
   /* Orange is the default — no extra class needed.            */
 
-  /* Green */
-  .accent-green {
+  /* Green – light */
+  :root.accent-green {
     --primary: 152 60% 38%;
     --primary-foreground: 152 30% 97%;
     --ring: 152 60% 38%;
@@ -88,8 +88,8 @@ body {
     --accent-foreground: 152 30% 97%;
     --chart-1: 152 60% 38%;
   }
-  .dark.accent-green,
-  .dark .accent-green {
+  /* Green – dark */
+  :root.dark.accent-green {
     --primary: 152 55% 50%;
     --primary-foreground: 152 30% 8%;
     --ring: 152 55% 50%;
@@ -98,8 +98,8 @@ body {
     --chart-1: 152 55% 50%;
   }
 
-  /* Blue */
-  .accent-blue {
+  /* Blue – light */
+  :root.accent-blue {
     --primary: 215 70% 48%;
     --primary-foreground: 215 30% 97%;
     --ring: 215 70% 48%;
@@ -107,8 +107,8 @@ body {
     --accent-foreground: 215 30% 97%;
     --chart-1: 215 70% 48%;
   }
-  .dark.accent-blue,
-  .dark .accent-blue {
+  /* Blue – dark */
+  :root.dark.accent-blue {
     --primary: 215 70% 58%;
     --primary-foreground: 215 30% 8%;
     --ring: 215 70% 58%;
@@ -117,8 +117,8 @@ body {
     --chart-1: 215 70% 58%;
   }
 
-  /* Violet */
-  .accent-violet {
+  /* Violet – light */
+  :root.accent-violet {
     --primary: 270 55% 52%;
     --primary-foreground: 270 30% 97%;
     --ring: 270 55% 52%;
@@ -126,8 +126,8 @@ body {
     --accent-foreground: 270 30% 97%;
     --chart-1: 270 55% 52%;
   }
-  .dark.accent-violet,
-  .dark .accent-violet {
+  /* Violet – dark */
+  :root.dark.accent-violet {
     --primary: 270 55% 62%;
     --primary-foreground: 270 30% 8%;
     --ring: 270 55% 62%;
