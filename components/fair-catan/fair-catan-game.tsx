@@ -166,13 +166,13 @@ export function FairCatanGame() {
   // Persist accent color
   const handleAccentChange = useCallback((color: AccentColor) => {
     setAccentColor(color)
-    try { localStorage.setItem("fair-catan-accent", color) } catch {}
+    try { localStorage.setItem("fair-catan-accent", color) } catch { }
   }, [])
 
   // Persist language
   const handleLangChange = useCallback((newLang: Lang) => {
     setLang(newLang)
-    try { localStorage.setItem("fair-catan-lang", newLang) } catch {}
+    try { localStorage.setItem("fair-catan-lang", newLang) } catch { }
   }, [])
 
   // ── Accent colour tokens ──────────────────────────────────────
@@ -458,8 +458,7 @@ export function FairCatanGame() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() =>
-                      setTheme(theme === "dark" ? "light" : "dark")
+                    onClick={() => setTheme((resolvedTheme ?? "light") === "dark" ? "light" : "dark")
                     }
                     aria-label="Toggle theme"
                   >
