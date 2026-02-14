@@ -44,6 +44,7 @@ import { BagStatus } from "./bag-status"
 import { RollHistory } from "./roll-history"
 import { StatsCard } from "./stats-card"
 import { AccentPicker, type AccentColor } from "./accent-picker"
+import { LanguagePicker } from "./language-picker"
 
 import {
   type BagSize,
@@ -53,6 +54,7 @@ import {
   createInitialState,
   getDiceCombination,
 } from "@/lib/dice-engine"
+import { type Lang, t } from "@/lib/translations"
 
 // ─── Reducer ────────────────────────────────────────────────────
 type Action =
@@ -125,7 +127,7 @@ function loadState(): GameState | null {
 
 // ─── Component ──────────────────────────────────────────────────
 export function FairCatanGame() {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [state, dispatch] = useReducer(gameReducer, createInitialState(72))
   const [rolling, setRolling] = useState(false)
   const [currentRoll, setCurrentRoll] = useState<DiceRoll | null>(null)
@@ -134,6 +136,7 @@ export function FairCatanGame() {
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [pendingBagSize, setPendingBagSize] = useState<string | null>(null)
   const [accentColor, setAccentColor] = useState<AccentColor>("orange")
+  const [lang, setLang] = useState<Lang>("en")
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -150,6 +153,13 @@ export function FairCatanGame() {
     if (savedAccent && ["orange", "green", "blue", "violet"].includes(savedAccent)) {
       setAccentColor(savedAccent)
     }
+    // Restore language (or auto-detect)
+    const savedLang = localStorage.getItem("fair-catan-lang") as Lang | null
+    if (savedLang && ["en", "es"].includes(savedLang)) {
+      setLang(savedLang)
+    } else {
+      setLang(navigator.language.startsWith("es") ? "es" : "en")
+    }
     setHydrated(true)
   }, [])
 
@@ -157,6 +167,12 @@ export function FairCatanGame() {
   const handleAccentChange = useCallback((color: AccentColor) => {
     setAccentColor(color)
     try { localStorage.setItem("fair-catan-accent", color) } catch {}
+  }, [])
+
+  // Persist language
+  const handleLangChange = useCallback((newLang: Lang) => {
+    setLang(newLang)
+    try { localStorage.setItem("fair-catan-lang", newLang) } catch {}
   }, [])
 
   // ── Accent colour tokens ──────────────────────────────────────
@@ -240,16 +256,15 @@ export function FairCatanGame() {
     },
   }
 
-  // Apply accent CSS variables whenever accent or theme changes
+  // Apply accent CSS variables whenever accent or resolved theme changes
   useEffect(() => {
-    const isDark = theme === "dark" ||
-      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    const isDark = resolvedTheme === "dark"
     const tokens = ACCENT_TOKENS[accentColor][isDark ? "dark" : "light"]
     const root = document.documentElement
     for (const [prop, value] of Object.entries(tokens)) {
       root.style.setProperty(prop, value)
     }
-  }, [accentColor, theme])
+  }, [accentColor, resolvedTheme])
 
   // Persist state changes to localStorage
   useEffect(() => {
@@ -267,7 +282,7 @@ export function FairCatanGame() {
       const newState = createInitialState(state.bagSize)
       dispatch({ type: "RESET", bagSize: state.bagSize })
       bag = newState.bag
-      toast.info("Bag empty — new cycle started")
+      toast.info(t(lang, "bagEmpty"))
     }
 
     // Draw from bag
@@ -306,7 +321,7 @@ export function FairCatanGame() {
       // Check if bag is now empty after this roll
       if (newBag.length === 0) {
         setTimeout(() => {
-          toast.info("Bag empty — new cycle will start on next roll")
+          toast.info(t(lang, "bagEmptyNext"))
         }, 300)
       }
     }, animDuration)
