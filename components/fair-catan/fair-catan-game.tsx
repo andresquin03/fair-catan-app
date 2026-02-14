@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 import {
   Dices,
   Moon,
@@ -43,6 +44,7 @@ import { ProbabilityChart } from "./probability-chart"
 import { BagStatus } from "./bag-status"
 import { RollHistory } from "./roll-history"
 import { StatsCard } from "./stats-card"
+import { AccentPicker, type AccentColor } from "./accent-picker"
 
 import {
   type BagSize,
@@ -132,6 +134,7 @@ export function FairCatanGame() {
   const rollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [pendingBagSize, setPendingBagSize] = useState<string | null>(null)
+  const [accentColor, setAccentColor] = useState<AccentColor>("orange")
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -143,7 +146,18 @@ export function FairCatanGame() {
         setCurrentRoll(saved.history[saved.history.length - 1])
       }
     }
+    // Restore accent color
+    const savedAccent = localStorage.getItem("fair-catan-accent") as AccentColor | null
+    if (savedAccent && ["orange", "green", "blue", "violet"].includes(savedAccent)) {
+      setAccentColor(savedAccent)
+    }
     setHydrated(true)
+  }, [])
+
+  // Persist accent color changes
+  const handleAccentChange = useCallback((color: AccentColor) => {
+    setAccentColor(color)
+    try { localStorage.setItem("fair-catan-accent", color) } catch {}
   }, [])
 
   // Persist state changes to localStorage
@@ -302,7 +316,7 @@ export function FairCatanGame() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background">
+      <div className={cn("min-h-screen bg-background", accentColor !== "orange" && `accent-${accentColor}`)}>
         {/* Header */}
         <header className="border-b border-border bg-card">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
@@ -331,6 +345,10 @@ export function FairCatanGame() {
                   <SelectItem value="144">144</SelectItem>
                 </SelectContent>
               </Select>
+              <div className="hidden items-center gap-1 sm:flex" aria-label="Accent color">
+                <AccentPicker value={accentColor} onChange={handleAccentChange} />
+              </div>
+              <div className="h-5 w-px bg-border hidden sm:block" role="separator" />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
