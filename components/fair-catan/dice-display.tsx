@@ -9,35 +9,51 @@ interface DiceDisplayProps {
 }
 
 export function DiceDisplay({ roll, rolling }: DiceDisplayProps) {
-  if (!roll && !rolling) {
-    return (
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex items-center gap-4 md:gap-6">
-          <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border md:h-28 md:w-28">
-            <span className="text-2xl text-muted-foreground">?</span>
-          </div>
-          <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border md:h-28 md:w-28">
-            <span className="text-2xl text-muted-foreground">?</span>
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground">Press Roll or Space to start</p>
-      </div>
-    )
-  }
+  const hasRoll = roll !== null
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    // Fixed-height container so nothing below ever shifts.
+    // h-[11rem] = dice (h-24/md:h-28) + gap-4 + sum line (text-4xl ~2.5rem) + breathing room
+    // md:h-[12.5rem] accounts for the larger md dice.
+    <div className="flex h-[11rem] flex-col items-center gap-4 md:h-[12.5rem]">
+      {/* ── Dice row ── */}
       <div className="flex items-center gap-4 md:gap-6">
-        <Die value={roll?.die1 ?? 1} rolling={rolling} size="lg" />
-        <Die value={roll?.die2 ?? 1} rolling={rolling} size="lg" />
+        {hasRoll ? (
+          <>
+            <Die value={roll.die1} rolling={rolling} size="lg" />
+            <Die value={roll.die2} rolling={rolling} size="lg" />
+          </>
+        ) : (
+          <>
+            <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border md:h-28 md:w-28">
+              <span className="text-2xl text-muted-foreground">?</span>
+            </div>
+            <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border md:h-28 md:w-28">
+              <span className="text-2xl text-muted-foreground">?</span>
+            </div>
+          </>
+        )}
       </div>
-      {roll && !rolling && (
-        <div className="flex items-center gap-2">
-          <span className="font-display text-4xl font-bold text-foreground">
-            {roll.sum}
-          </span>
-        </div>
-      )}
+
+      {/* ── Sum / hint – always present, visibility toggled via opacity ── */}
+      <div
+        className="flex items-center gap-2 transition-opacity duration-200"
+        style={{ opacity: hasRoll && !rolling ? 1 : 0 }}
+        aria-hidden={!hasRoll || rolling}
+      >
+        <span className="font-display text-4xl font-bold text-foreground">
+          {roll?.sum ?? "\u00A0"}
+        </span>
+      </div>
+
+      {/* Hint text – only visible when no roll has been made */}
+      <p
+        className="text-sm text-muted-foreground transition-opacity duration-200"
+        style={{ opacity: !hasRoll ? 1 : 0 }}
+        aria-hidden={hasRoll}
+      >
+        Press Roll or Space to start
+      </p>
     </div>
   )
 }
