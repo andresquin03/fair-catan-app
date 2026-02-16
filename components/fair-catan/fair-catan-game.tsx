@@ -579,7 +579,7 @@ export function FairCatanGame() {
           </Button>
 
           <div className="md:scale-150 lg:scale-[1.75]">
-            <DiceDisplay roll={currentRoll} rolling={rolling} lang={lang} />
+            <DiceDisplay roll={currentRoll} rolling={rolling} lang={lang} hideHint />
           </div>
 
           <Button

@@ -8,9 +8,10 @@ interface DiceDisplayProps {
   roll: DiceRoll | null
   rolling: boolean
   lang: Lang
+  hideHint?: boolean
 }
 
-export function DiceDisplay({ roll, rolling, lang }: DiceDisplayProps) {
+export function DiceDisplay({ roll, rolling, lang, hideHint }: DiceDisplayProps) {
   const hasRoll = roll !== null
 
   return (
@@ -49,13 +50,15 @@ export function DiceDisplay({ roll, rolling, lang }: DiceDisplayProps) {
       </div>
 
       {/* Hint text – only visible when no roll has been made */}
-      <p
-        className="text-sm text-muted-foreground transition-opacity duration-200"
-        style={{ opacity: !hasRoll ? 1 : 0 }}
-        aria-hidden={hasRoll}
-      >
-        {t(lang, "pressRoll")}
-      </p>
+      {!hideHint && (
+        <p
+          className="text-sm text-muted-foreground transition-opacity duration-200"
+          style={{ opacity: !hasRoll ? 1 : 0 }}
+          aria-hidden={hasRoll}
+        >
+          {t(lang, "pressRoll")}
+        </p>
+      )}
     </div>
   )
 }
