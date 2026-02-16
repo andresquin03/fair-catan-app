@@ -578,7 +578,7 @@ export function FairCatanGame() {
             <X className="h-5 w-5" />
           </Button>
 
-          <div className="md:scale-150 lg:scale-[1.75]">
+          <div className="pointer-events-none md:scale-150 lg:scale-[1.75]">
             <DiceDisplay roll={currentRoll} rolling={rolling} lang={lang} hideHint />
           </div>
 
