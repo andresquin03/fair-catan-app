@@ -42,6 +42,8 @@ const translations = {
     shortcuts: "Shortcuts",
     toggleTheme: "Toggle theme",
     accentColor: "Accent color",
+    fullscreen: "Fullscreen dice",
+    exitFullscreen: "Exit fullscreen",
   },
   es: {
     subtitle: "Un tirador justo de 2d6 con sistema de bolsa",
@@ -84,6 +86,8 @@ const translations = {
     shortcuts: "Atajos",
     toggleTheme: "Cambiar tema",
     accentColor: "Color de acento",
+    fullscreen: "Dados en pantalla completa",
+    exitFullscreen: "Salir de pantalla completa",
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

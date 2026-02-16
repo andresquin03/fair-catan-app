@@ -11,6 +11,8 @@ import {
   RotateCcw,
   Share2,
   Keyboard,
+  Maximize,
+  X,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -136,6 +138,7 @@ export function FairCatanGame() {
   const [pendingBagSize, setPendingBagSize] = useState<string | null>(null)
   const [accentColor, setAccentColor] = useState<AccentColor>("orange")
   const [lang, setLang] = useState<Lang>("en")
+  const [fullscreen, setFullscreen] = useState(false)
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -318,6 +321,9 @@ export function FairCatanGame() {
         e.preventDefault()
         doUndo()
       }
+      if (e.key === "Escape") {
+        setFullscreen(false)
+      }
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
@@ -400,7 +406,21 @@ export function FairCatanGame() {
             {/* Left Column – Dice + Controls */}
             <div className="flex flex-col gap-6 lg:col-span-2">
               {/* Dice Area */}
-              <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="relative flex flex-col items-center gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-2 h-8 w-8"
+                      onClick={() => setFullscreen(true)}
+                      aria-label={t(lang, "fullscreen")}
+                    >
+                      <Maximize className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t(lang, "fullscreen")}</TooltipContent>
+                </Tooltip>
                 <DiceDisplay roll={currentRoll} rolling={rolling} lang={lang} />
 
                 {/* ROLL button */}
@@ -545,6 +565,48 @@ export function FairCatanGame() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Fullscreen dice overlay */}
+      {fullscreen && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4"
+            onClick={() => setFullscreen(false)}
+            aria-label={t(lang, "exitFullscreen")}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+
+          <div className="md:scale-150 lg:scale-[1.75]">
+            <DiceDisplay roll={currentRoll} rolling={rolling} lang={lang} />
+          </div>
+
+          <Button
+            onClick={doRoll}
+            disabled={rolling}
+            size="lg"
+            className="h-14 w-full max-w-xs text-lg font-bold shadow-md"
+          >
+            <Dices className="mr-2 h-5 w-5" />
+            {rolling ? t(lang, "rolling") : t(lang, "roll")}
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <div className="h-2 flex-1 min-w-32 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{
+                  width: `${(state.bag.length / state.bagSize) * 100}%`,
+                }}
+              />
+            </div>
+            <span className="text-sm font-medium tabular-nums text-muted-foreground">
+              {state.bag.length} / {state.bagSize}
+            </span>
+          </div>
+        </div>
+      )}
     </TooltipProvider>
   )
 }
