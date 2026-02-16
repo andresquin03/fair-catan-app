@@ -2,13 +2,15 @@
 
 import { Die } from "./die"
 import type { DiceRoll } from "@/lib/dice-engine"
+import { type Lang, t } from "@/lib/translations"
 
 interface DiceDisplayProps {
   roll: DiceRoll | null
   rolling: boolean
+  lang: Lang
 }
 
-export function DiceDisplay({ roll, rolling }: DiceDisplayProps) {
+export function DiceDisplay({ roll, rolling, lang }: DiceDisplayProps) {
   const hasRoll = roll !== null
 
   return (
@@ -52,7 +54,7 @@ export function DiceDisplay({ roll, rolling }: DiceDisplayProps) {
         style={{ opacity: !hasRoll ? 1 : 0 }}
         aria-hidden={hasRoll}
       >
-        Press Roll or Space to start
+        {t(lang, "pressRoll")}
       </p>
     </div>
   )

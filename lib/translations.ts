@@ -1,6 +1,6 @@
 export type Lang = "en" | "es"
 
-export const translations: Record<Lang, Record<string, string>> = {
+const translations = {
   en: {
     subtitle: "A fair 2d6 bag dice roller",
     roll: "ROLL",
@@ -17,7 +17,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     cycleStats: "Cycle Stats",
     rollsThisCycle: "Rolls this cycle",
     mostFrequent: "Most frequent",
-    expectedVsObserved: "Expected vs Observed",
     current: "Current",
     expected: "Expected",
     noRolls: "No rolls yet",
@@ -43,8 +42,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     shortcuts: "Shortcuts",
     toggleTheme: "Toggle theme",
     accentColor: "Accent color",
-    exp: "exp",
-    obs: "obs",
   },
   es: {
     subtitle: "Un tirador justo de 2d6 con sistema de bolsa",
@@ -62,7 +59,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     cycleStats: "Estadísticas del ciclo",
     rollsThisCycle: "Tiradas este ciclo",
     mostFrequent: "Más frecuente",
-    expectedVsObserved: "Esperado vs Observado",
     current: "Actual",
     expected: "Esperado",
     noRolls: "Sin tiradas aún",
@@ -88,11 +84,11 @@ export const translations: Record<Lang, Record<string, string>> = {
     shortcuts: "Atajos",
     toggleTheme: "Cambiar tema",
     accentColor: "Color de acento",
-    exp: "esp",
-    obs: "obs",
   },
-}
+} as const satisfies Record<Lang, Record<string, string>>
 
-export function t(lang: Lang, key: string): string {
-  return translations[lang]?.[key] ?? translations.en[key] ?? key
+export type TranslationKey = keyof typeof translations.en
+
+export function t(lang: Lang, key: TranslationKey): string {
+  return translations[lang][key]
 }
