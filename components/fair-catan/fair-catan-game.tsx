@@ -43,16 +43,17 @@ import { ProbabilityChart } from "./probability-chart"
 import { BagStatus } from "./bag-status"
 import { RollHistory } from "./roll-history"
 import { StatsCard } from "./stats-card"
-import { AccentPicker, type AccentColor } from "./accent-picker"
+import { AccentPicker, type AccentColor, ACCENT_TOKENS } from "./accent-picker"
+import { LanguagePicker } from "./language-picker"
 
 import {
   type BagSize,
   type DiceRoll,
   type GameState,
-  buildBag,
   createInitialState,
   getDiceCombination,
 } from "@/lib/dice-engine"
+import { type Lang, t } from "@/lib/translations"
 
 // ─── Reducer ────────────────────────────────────────────────────
 type Action =
@@ -125,7 +126,7 @@ function loadState(): GameState | null {
 
 // ─── Component ──────────────────────────────────────────────────
 export function FairCatanGame() {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [state, dispatch] = useReducer(gameReducer, createInitialState(72))
   const [rolling, setRolling] = useState(false)
   const [currentRoll, setCurrentRoll] = useState<DiceRoll | null>(null)
@@ -134,6 +135,7 @@ export function FairCatanGame() {
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [pendingBagSize, setPendingBagSize] = useState<string | null>(null)
   const [accentColor, setAccentColor] = useState<AccentColor>("orange")
+  const [lang, setLang] = useState<Lang>("en")
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -150,106 +152,37 @@ export function FairCatanGame() {
     if (savedAccent && ["orange", "green", "blue", "violet"].includes(savedAccent)) {
       setAccentColor(savedAccent)
     }
+    // Restore language (or auto-detect)
+    const savedLang = localStorage.getItem("fair-catan-lang") as Lang | null
+    if (savedLang && ["en", "es"].includes(savedLang)) {
+      setLang(savedLang)
+    } else {
+      setLang(navigator.language.startsWith("es") ? "es" : "en")
+    }
     setHydrated(true)
   }, [])
 
   // Persist accent color
   const handleAccentChange = useCallback((color: AccentColor) => {
     setAccentColor(color)
-    try { localStorage.setItem("fair-catan-accent", color) } catch {}
+    try { localStorage.setItem("fair-catan-accent", color) } catch { }
   }, [])
 
-  // ── Accent colour tokens ──────────────────────────────────────
-  // Imperative style.setProperty beats any stylesheet rule, so it
-  // works in both light and dark mode without cascade issues.
-  const ACCENT_TOKENS: Record<AccentColor, {
-    light: Record<string, string>
-    dark: Record<string, string>
-  }> = {
-    orange: {
-      light: {
-        "--primary": "25 75% 47%",
-        "--primary-foreground": "40 40% 99%",
-        "--ring": "25 75% 47%",
-        "--accent": "16 65% 52%",
-        "--accent-foreground": "40 40% 99%",
-        "--chart-1": "25 75% 47%",
-      },
-      dark: {
-        "--primary": "30 80% 55%",
-        "--primary-foreground": "25 20% 8%",
-        "--ring": "30 80% 55%",
-        "--accent": "16 70% 58%",
-        "--accent-foreground": "25 20% 8%",
-        "--chart-1": "30 80% 55%",
-      },
-    },
-    green: {
-      light: {
-        "--primary": "152 60% 38%",
-        "--primary-foreground": "152 30% 97%",
-        "--ring": "152 60% 38%",
-        "--accent": "162 50% 44%",
-        "--accent-foreground": "152 30% 97%",
-        "--chart-1": "152 60% 38%",
-      },
-      dark: {
-        "--primary": "152 55% 50%",
-        "--primary-foreground": "152 30% 8%",
-        "--ring": "152 55% 50%",
-        "--accent": "162 50% 52%",
-        "--accent-foreground": "152 30% 8%",
-        "--chart-1": "152 55% 50%",
-      },
-    },
-    blue: {
-      light: {
-        "--primary": "215 70% 48%",
-        "--primary-foreground": "215 30% 97%",
-        "--ring": "215 70% 48%",
-        "--accent": "205 65% 55%",
-        "--accent-foreground": "215 30% 97%",
-        "--chart-1": "215 70% 48%",
-      },
-      dark: {
-        "--primary": "215 70% 58%",
-        "--primary-foreground": "215 30% 8%",
-        "--ring": "215 70% 58%",
-        "--accent": "205 65% 62%",
-        "--accent-foreground": "215 30% 8%",
-        "--chart-1": "215 70% 58%",
-      },
-    },
-    violet: {
-      light: {
-        "--primary": "270 55% 52%",
-        "--primary-foreground": "270 30% 97%",
-        "--ring": "270 55% 52%",
-        "--accent": "280 50% 58%",
-        "--accent-foreground": "270 30% 97%",
-        "--chart-1": "270 55% 52%",
-      },
-      dark: {
-        "--primary": "270 55% 62%",
-        "--primary-foreground": "270 30% 8%",
-        "--ring": "270 55% 62%",
-        "--accent": "280 50% 65%",
-        "--accent-foreground": "270 30% 8%",
-        "--chart-1": "270 55% 62%",
-      },
-    },
-  }
+  // Persist language
+  const handleLangChange = useCallback((newLang: Lang) => {
+    setLang(newLang)
+    try { localStorage.setItem("fair-catan-lang", newLang) } catch { }
+  }, [])
 
-  // Apply accent CSS variables whenever accent or theme changes
+  // Apply accent CSS variables whenever accent or resolved theme changes
   useEffect(() => {
-    const isDark = theme === "dark" ||
-      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    const isDark = resolvedTheme === "dark"
     const tokens = ACCENT_TOKENS[accentColor][isDark ? "dark" : "light"]
     const root = document.documentElement
     for (const [prop, value] of Object.entries(tokens)) {
       root.style.setProperty(prop, value)
     }
-  }, [accentColor, theme])
+  }, [accentColor, resolvedTheme])
 
   // Persist state changes to localStorage
   useEffect(() => {
@@ -267,7 +200,7 @@ export function FairCatanGame() {
       const newState = createInitialState(state.bagSize)
       dispatch({ type: "RESET", bagSize: state.bagSize })
       bag = newState.bag
-      toast.info("Bag empty — new cycle started")
+      toast.info(t(lang, "bagEmpty"))
     }
 
     // Draw from bag
@@ -306,11 +239,11 @@ export function FairCatanGame() {
       // Check if bag is now empty after this roll
       if (newBag.length === 0) {
         setTimeout(() => {
-          toast.info("Bag empty — new cycle will start on next roll")
+          toast.info(t(lang, "bagEmptyNext"))
         }, 300)
       }
     }, animDuration)
-  }, [rolling, state.bag, state.bagSize])
+  }, [rolling, state.bag, state.bagSize, lang])
 
   const doUndo = useCallback(() => {
     if (state.previousBag && state.history.length > 0) {
@@ -320,9 +253,9 @@ export function FairCatanGame() {
           : null
       setCurrentRoll(prevRoll)
       dispatch({ type: "UNDO" })
-      toast("Last roll undone")
+      toast(t(lang, "lastRollUndone"))
     }
-  }, [state.previousBag, state.history])
+  }, [state.previousBag, state.history, lang])
 
   const requestReset = useCallback(() => {
     setShowResetDialog(true)
@@ -332,8 +265,8 @@ export function FairCatanGame() {
     dispatch({ type: "RESET", bagSize: state.bagSize })
     setCurrentRoll(null)
     setShowResetDialog(false)
-    toast.success("Cycle reset")
-  }, [state.bagSize])
+    toast.success(t(lang, "cycleReset"))
+  }, [state.bagSize, lang])
 
   const requestBagSizeChange = useCallback((size: string) => {
     if (size === String(state.bagSize)) return
@@ -345,22 +278,22 @@ export function FairCatanGame() {
     dispatch({ type: "SET_BAG_SIZE", bagSize: Number(pendingBagSize) as BagSize })
     setCurrentRoll(null)
     setPendingBagSize(null)
-    toast.success(`Bag size changed to ${pendingBagSize}`)
-  }, [pendingBagSize])
+    toast.success(`${t(lang, "bagSizeChanged")} ${pendingBagSize}`)
+  }, [pendingBagSize, lang])
 
   const cancelBagSizeChange = useCallback(() => {
     setPendingBagSize(null)
   }, [])
 
   const doShare = useCallback(() => {
-    const lines: string[] = ["Fair Catan - Roll Summary", ""]
-    lines.push(`Bag size: ${state.bagSize}`)
-    lines.push(`Rolls this cycle: ${state.rollCount}`)
-    lines.push(`Remaining in bag: ${state.bag.length} / ${state.bagSize}`)
+    const lines: string[] = [t(lang, "rollSummary"), ""]
+    lines.push(`${t(lang, "bagSize")}: ${state.bagSize}`)
+    lines.push(`${t(lang, "rollsThisCycle")}: ${state.rollCount}`)
+    lines.push(`${t(lang, "remainingInBag")}: ${state.bag.length} / ${state.bagSize}`)
     lines.push("")
 
     if (state.history.length > 0) {
-      lines.push("Last 10 rolls:")
+      lines.push(`${t(lang, "lastRolls")}:`)
       const recent = state.history.slice(-10)
       for (const roll of recent) {
         lines.push(`  ${roll.die1} + ${roll.die2} = ${roll.sum}`)
@@ -368,9 +301,9 @@ export function FairCatanGame() {
     }
 
     navigator.clipboard.writeText(lines.join("\n")).then(() => {
-      toast.success("Summary copied to clipboard!")
+      toast.success(t(lang, "summaryCopied"))
     })
-  }, [state])
+  }, [state, lang])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -418,11 +351,11 @@ export function FairCatanGame() {
                   Fair Catan
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  A fair 2d6 bag dice roller
+                  {t(lang, "subtitle")}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Select
                 value={String(state.bagSize)}
                 onValueChange={requestBagSizeChange}
@@ -436,24 +369,27 @@ export function FairCatanGame() {
                   <SelectItem value="144">144</SelectItem>
                 </SelectContent>
               </Select>
-              <AccentPicker value={accentColor} onChange={handleAccentChange} />
-              <div className="h-5 w-px bg-border" role="separator" />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      setTheme(theme === "dark" ? "light" : "dark")
-                    }
-                    aria-label="Toggle theme"
-                  >
-                    <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Toggle theme</TooltipContent>
-              </Tooltip>
+              <div className="h-5 w-px bg-border" role="separator" aria-hidden />
+              <div className="flex items-center gap-1.5" aria-label="Appearance">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setTheme((resolvedTheme ?? "light") === "dark" ? "light" : "dark")
+                      }
+                      aria-label={t(lang, "toggleTheme")}
+                    >
+                      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t(lang, "toggleTheme")}</TooltipContent>
+                </Tooltip>
+                <AccentPicker value={accentColor} onChange={handleAccentChange} lang={lang} />
+              </div>
+              <div className="h-5 w-px bg-border" role="separator" aria-hidden />
+              <LanguagePicker value={lang} onChange={handleLangChange} />
             </div>
           </div>
         </header>
@@ -465,7 +401,7 @@ export function FairCatanGame() {
             <div className="flex flex-col gap-6 lg:col-span-2">
               {/* Dice Area */}
               <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <DiceDisplay roll={currentRoll} rolling={rolling} />
+                <DiceDisplay roll={currentRoll} rolling={rolling} lang={lang} />
 
                 {/* ROLL button */}
                 <Button
@@ -475,7 +411,7 @@ export function FairCatanGame() {
                   className="h-14 w-full max-w-xs text-lg font-bold shadow-md"
                 >
                   <Dices className="mr-2 h-5 w-5" />
-                  {rolling ? "Rolling..." : "ROLL"}
+                  {rolling ? t(lang, "rolling") : t(lang, "roll")}
                 </Button>
 
                 {/* Remaining indicator */}
@@ -504,12 +440,12 @@ export function FairCatanGame() {
                         disabled={!state.previousBag || state.history.length === 0}
                       >
                         <Undo2 className="mr-1.5 h-3.5 w-3.5" />
-                        Undo
+                        {t(lang, "undo")}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <span className="flex items-center gap-1.5">
-                        Undo last roll
+                        {t(lang, "undoLast")}
                         <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
                           {"Ctrl+Z"}
                         </kbd>
@@ -520,52 +456,52 @@ export function FairCatanGame() {
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="sm" onClick={requestReset}>
                         <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                        Reset
+                        {t(lang, "reset")}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Reset cycle</TooltipContent>
+                    <TooltipContent>{t(lang, "resetCycle")}</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="sm" onClick={doShare}>
                         <Share2 className="mr-1.5 h-3.5 w-3.5" />
-                        Share
+                        {t(lang, "share")}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Copy summary to clipboard</TooltipContent>
+                    <TooltipContent>{t(lang, "shareSummary")}</TooltipContent>
                   </Tooltip>
                 </div>
               </div>
 
               {/* Stats Card */}
-              <StatsCard history={state.history} bagSize={state.bagSize} />
+              <StatsCard history={state.history} bagSize={state.bagSize} lang={lang} />
 
               {/* Keyboard shortcuts hint */}
               <div className="hidden items-center justify-center gap-4 text-xs text-muted-foreground lg:flex">
                 <span className="flex items-center gap-1.5">
                   <Keyboard className="h-3.5 w-3.5" />
-                  Shortcuts:
+                  {t(lang, "shortcuts")}:
                 </span>
                 <span className="flex items-center gap-1">
                   <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                     Space
                   </kbd>
-                  Roll
+                  {t(lang, "roll")}
                 </span>
                 <span className="flex items-center gap-1">
                   <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                     {"Ctrl+Z"}
                   </kbd>
-                  Undo
+                  {t(lang, "undo")}
                 </span>
               </div>
             </div>
 
             {/* Right Column – Charts + History */}
             <div className="flex flex-col gap-6 lg:col-span-3">
-              <ProbabilityChart bag={state.bag} />
-              <BagStatus bag={state.bag} bagSize={state.bagSize} />
-              <RollHistory history={state.history} />
+              <ProbabilityChart bag={state.bag} lang={lang} />
+              <BagStatus bag={state.bag} bagSize={state.bagSize} lang={lang} />
+              <RollHistory history={state.history} lang={lang} />
             </div>
           </div>
         </main>
@@ -575,18 +511,18 @@ export function FairCatanGame() {
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset cycle?</AlertDialogTitle>
+            <AlertDialogTitle>{t(lang, "resetConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will restart the bag and clear the current cycle history. Are you sure?
+              {t(lang, "resetConfirmMessage")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t(lang, "cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmReset}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Reset
+              {t(lang, "reset")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -596,15 +532,15 @@ export function FairCatanGame() {
       <AlertDialog open={pendingBagSize !== null} onOpenChange={(open) => { if (!open) cancelBagSizeChange() }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Change bag size?</AlertDialogTitle>
+            <AlertDialogTitle>{t(lang, "changeBagTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Changing bag size will restart the cycle. Continue?
+              {t(lang, "changeBagMessage")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelBagSizeChange}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelBagSizeChange}>{t(lang, "cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmBagSizeChange}>
-              Change
+              {t(lang, "change")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

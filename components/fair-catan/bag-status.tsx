@@ -2,20 +2,22 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { countRemaining } from "@/lib/dice-engine"
+import { type Lang, t } from "@/lib/translations"
 
 interface BagStatusProps {
   bag: number[]
   bagSize: number
+  lang: Lang
 }
 
-export function BagStatus({ bag, bagSize }: BagStatusProps) {
+export function BagStatus({ bag, bagSize, lang }: BagStatusProps) {
   const counts = countRemaining(bag)
   const baseMax = bagSize / 36
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="font-display text-base">Bag Contents</CardTitle>
+        <CardTitle className="font-display text-base">{t(lang, "bagStatus")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-11 gap-1">

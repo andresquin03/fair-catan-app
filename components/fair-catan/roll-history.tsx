@@ -5,22 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { DiceRoll } from "@/lib/dice-engine"
 import { Die } from "./die"
+import { type Lang, t } from "@/lib/translations"
 
 interface RollHistoryProps {
   history: DiceRoll[]
+  lang: Lang
 }
 
-export function RollHistory({ history }: RollHistoryProps) {
+export function RollHistory({ history, lang }: RollHistoryProps) {
   const recent = history.slice(-20).reverse()
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="font-display text-base">
-          Roll History
+          {t(lang, "history")}
           {history.length > 0 && (
             <span className="ml-2 text-xs font-normal text-muted-foreground">
-              (last {Math.min(history.length, 20)} of {history.length})
+              ({t(lang, "last")} {Math.min(history.length, 20)} {t(lang, "of")} {history.length})
             </span>
           )}
         </CardTitle>
@@ -28,7 +30,7 @@ export function RollHistory({ history }: RollHistoryProps) {
       <CardContent>
         {recent.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
-            No rolls yet
+            {t(lang, "noRolls")}
           </p>
         ) : (
           <ScrollArea className="h-48">

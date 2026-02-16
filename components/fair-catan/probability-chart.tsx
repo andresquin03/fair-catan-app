@@ -2,12 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { computeProbabilities, expectedProbabilities } from "@/lib/dice-engine"
+import { type Lang, t } from "@/lib/translations"
 
 interface ProbabilityChartProps {
   bag: number[]
+  lang: Lang
 }
 
-export function ProbabilityChart({ bag }: ProbabilityChartProps) {
+export function ProbabilityChart({ bag, lang }: ProbabilityChartProps) {
   const probs = computeProbabilities(bag)
   const expected = expectedProbabilities()
   const maxProb = Math.max(...Object.values(probs), ...Object.values(expected), 1)
@@ -16,7 +18,7 @@ export function ProbabilityChart({ bag }: ProbabilityChartProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="font-display text-base">Next-Roll Probabilities</CardTitle>
+        <CardTitle className="font-display text-base">{t(lang, "nextProb")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-1.5">
@@ -52,11 +54,11 @@ export function ProbabilityChart({ bag }: ProbabilityChartProps) {
         <div className="mt-3 flex items-center gap-4 text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="inline-block h-2 w-2 rounded-sm bg-primary" />
-            Current
+            {t(lang, "current")}
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block h-2 w-0.5 bg-muted-foreground/30" />
-            Expected
+            {t(lang, "expected")}
           </span>
         </div>
       </CardContent>
