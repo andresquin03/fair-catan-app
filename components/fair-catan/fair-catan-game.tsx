@@ -349,24 +349,24 @@ export function FairCatanGame() {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="border-b border-border bg-card">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Dices className="h-7 w-7 text-primary" />
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Dices className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
               <div>
-                <h1 className="font-display text-xl font-bold text-foreground">
+                <h1 className="font-display text-lg font-bold text-foreground sm:text-xl">
                   Fair Catan
                 </h1>
-                <p className="text-xs text-muted-foreground">
+                <p className="hidden text-xs text-muted-foreground sm:block">
                   {t(lang, "subtitle")}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <Select
                 value={String(state.bagSize)}
                 onValueChange={requestBagSizeChange}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-[4.5rem] sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -375,8 +375,8 @@ export function FairCatanGame() {
                   <SelectItem value="144">144</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="h-5 w-px bg-border" role="separator" aria-hidden />
-              <div className="flex items-center gap-1.5" aria-label="Appearance">
+              <div className="hidden h-5 w-px bg-border sm:block" role="separator" aria-hidden />
+              <div className="flex items-center gap-1 sm:gap-1.5" aria-label="Appearance">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -394,7 +394,7 @@ export function FairCatanGame() {
                 </Tooltip>
                 <AccentPicker value={accentColor} onChange={handleAccentChange} lang={lang} />
               </div>
-              <div className="h-5 w-px bg-border" role="separator" aria-hidden />
+              <div className="hidden h-5 w-px bg-border sm:block" role="separator" aria-hidden />
               <LanguagePicker value={lang} onChange={handleLangChange} />
             </div>
           </div>
@@ -410,13 +410,13 @@ export function FairCatanGame() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      className="absolute right-2 top-2 h-8 w-8"
+                      className="absolute right-3 top-3 h-9 w-9"
                       onClick={() => setFullscreen(true)}
                       aria-label={t(lang, "fullscreen")}
                     >
-                      <Maximize className="h-4 w-4" />
+                      <Maximize className="h-4.5 w-4.5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>{t(lang, "fullscreen")}</TooltipContent>
@@ -450,7 +450,7 @@ export function FairCatanGame() {
                 </div>
 
                 {/* Undo / Reset / Share */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
